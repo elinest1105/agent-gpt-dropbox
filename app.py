@@ -6,15 +6,19 @@ import dropbox
 from io import BytesIO
 from urllib.parse import urljoin
 from flask import Flask, flash, request, redirect, jsonify
+from flask_cors import CORS, cross_origin
 
 ACCESS_TOKEN = os.getenv("ACCESS_TOKEN", default=None)
 app = Flask(__name__)
-
+app.config['CORS_HEADERS'] = 'Content-Type'
+cors = CORS(app)
 @app.route('/', methods=['GET'])
+@cross_origin()
 def get():
     return ("hello")
 
 @app.route('/api/v1/main', methods=['POST'])
+@cross_origin()
 def main():
     print("hello!")
     url = request.form['URL']
