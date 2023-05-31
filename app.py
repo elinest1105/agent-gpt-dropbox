@@ -14,7 +14,6 @@ from scraper import *
 
 load_dotenv()
 
-ACCESS_TOKEN = os.getenv("ACCESS_TOKEN", default=None)
 api_key = os.getenv("GOOGLE_API_KEY", default=None)
 cx = os.getenv("CX", default=None)
 
@@ -32,30 +31,25 @@ def get():
 @app.route('/api/v1/main', methods=['POST'])
 @cross_origin()
 def main():
-    brand = request.form['brand']
-    print("brandname-------->", brand)
+    req_data = request.get_json()
+
+    brand = req_data["brand"]
+    dropkey = req_data["apikey"]
     ad_urls = []
     images = []
 
     search_results = search_brand(brand, api_key, cx)
     parsed_urls = parse_search_results(search_results)
-    print("parsed_urls------------->\n")
-    for index, url in enumerate(parsed_urls, start=1):
-        print(f"{index}. {url}")
 
     for result in parsed_urls:
         ad_urls.append(find_banner_ads(result, brand))
-    print("ad_urls------------->\n")
-    for index, url in enumerate(ad_urls, start=1):
-        print(f"{index}. {url}")
 
     for url in ad_urls:
         images.append(download_images(url))
 
     for image in images:
-        upload_to_dropbox(brand, image, ACCESS_TOKEN)
-    return ("success upload")
-
+        upload_to_dropbox(brand, image, dropkey)
+    return ("Upload Success!")
 
 def find_banner_ads(url, brand):
     response = requests.get(url)
@@ -83,7 +77,7 @@ def upload_to_dropbox(brand, image, access_token):
     for idx, img in enumerate(image):
         file_name = f'/banner_ads/{brand}_banner_ad_{timestamp}_{idx + 1}.jpg'
         dbx.files_upload(img.getvalue(), file_name,
-                         mode=dropbox.files.WriteMode.overwrite)
+                        mode=dropbox.files.WriteMode.overwrite)
 
 
 if __name__ == '__main__':
